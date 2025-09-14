@@ -9,23 +9,9 @@ namespace ActividadCuatro.Controllers {
 
         private readonly DatosEnMemoria datos = new();
 
-        [HttpGet("usuarios/{username}")]
-        public ActionResult<Usuario> Get(string username) {
-
-            Usuario? usuario = datos.ObtenerPorUsername(username);
-
-            if (usuario is null)
-                return NotFound();
-
-            return usuario;
-        }
-        [HttpGet("usuarios")]
-        public List<Usuario> Get() {
-            return datos.ObtenerTodosLosUsuarios();
-        }
         [HttpPost("usuarios")]
         public ActionResult<Usuario> Registro([FromBody] Usuario usuario) {
-            
+
             if (string.IsNullOrEmpty(usuario.Username))
                 return BadRequest("Error en usuario ");
 
@@ -40,6 +26,7 @@ namespace ActividadCuatro.Controllers {
             datos.Crear(usuario);
             return usuario;
         }
+
         [HttpPost("auth/login")]
         public ActionResult<AuthResponse> Login([FromBody] AuthData usuario) {
 
@@ -64,9 +51,26 @@ namespace ActividadCuatro.Controllers {
 
             return authResponse;
         }
+
+        [HttpGet("usuarios/{username}")]
+        public ActionResult<Usuario> Get([FromHeader(Name = "x-token")] string token, string username) {
+
+            Usuario? usuario = datos.ObtenerPorUsername(username);
+
+            if (usuario is null)
+                return NotFound();
+
+            return usuario;
+        }
+
         [HttpPatch("usuarios")]
         public void Patch() {
-            
+
+        }
+
+        [HttpGet("usuarios")]
+        public List<Usuario> Get() {
+            return datos.ObtenerTodosLosUsuarios();
         }
     }
 }
