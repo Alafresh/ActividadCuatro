@@ -3,12 +3,12 @@
         public string Username { get; set; }
         public string Password { get; set; }
         public string Token { get => token; set => token = value; }
-        private string token;
+        private string? token;
         public bool state;
-        public UserData data;
+        public UserData Data { get ; set; } = new ();
     }
     public class UserData {
-        public int score;
+        public int Score { get; set; }
     }
 
     public class AuthData {
@@ -24,5 +24,9 @@
             Usuario = usuarioBD.Username;
             Token = usuarioBD.Token;
         }
+    }
+    public class User {
+        public string Username { get; set; }
+        public UserData Data { get; set; }
     }
 }

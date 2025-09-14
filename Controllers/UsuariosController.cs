@@ -10,7 +10,7 @@ namespace ActividadCuatro.Controllers {
         private readonly DatosEnMemoria datos = new();
 
         [HttpPost("usuarios")]
-        public ActionResult<Usuario> Registro([FromBody] Usuario usuario) {
+        public ActionResult<AuthData> Registro([FromBody] AuthData usuario) {
 
             if (string.IsNullOrEmpty(usuario.Username))
                 return BadRequest("Error en usuario ");
@@ -47,7 +47,7 @@ namespace ActividadCuatro.Controllers {
             string token = datos.GenerarToken();
             usuarioDB.Token = token;
 
-            AuthResponse authResponse = new AuthResponse(usuarioDB);
+            AuthResponse authResponse = new(usuarioDB);
 
             return authResponse;
         }
@@ -55,22 +55,43 @@ namespace ActividadCuatro.Controllers {
         [HttpGet("usuarios/{username}")]
         public ActionResult<Usuario> Get([FromHeader(Name = "x-token")] string token, string username) {
 
+            if (string.IsNullOrEmpty(token))
+                return BadRequest("debe enviar el campo token en la peticion");
+
             Usuario? usuario = datos.ObtenerPorUsername(username);
 
             if (usuario is null)
-                return NotFound();
+                return NotFound("Usuario no encontrado");
 
-            return usuario;
+            if (usuario.Token == token)
+                return usuario;
+
+            return NotFound();
         }
 
         [HttpPatch("usuarios")]
-        public void Patch() {
+        public ActionResult<Usuario> Patch([FromHeader(Name = "x-token")] string token, [FromBody] User usuario) {
+            
+            if (string.IsNullOrEmpty(token))
+                return BadRequest("debe enviar el campo token en la peticion");
 
+            Usuario? usuarioDb = datos.ObtenerPorUsername(usuario.Username);
+
+            if (usuarioDb is null)
+                return NotFound("Usuario no encontrado");
+
+            usuarioDb.Data.Score = usuario.Data.Score;
+
+            return usuarioDb;
         }
 
         [HttpGet("usuarios")]
-        public List<Usuario> Get() {
-            return datos.ObtenerTodosLosUsuarios();
+        public ActionResult<List<Usuario>> Get([FromHeader(Name = "x-token")] string token) {
+            
+            if (string.IsNullOrEmpty(token))
+                return NotFound("debe enviar el campo token en la peticion");
+
+            return datos.TokenValido(token) ? datos.ObtenerTodosLosUsuarios() : NotFound("Token invalido");
         }
     }
 }
